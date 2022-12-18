@@ -51,7 +51,7 @@ namespace ProductProjectAPI.Controllers
         {
             var product = products.Find(x => x.Id == id);
             if (product == null)
-                return NotFound("Ürün bulunamadı.");
+                return NotFound("Silinecek ürün bulunamadı.");
             products.Remove(product);
             return Ok(products);
         }
