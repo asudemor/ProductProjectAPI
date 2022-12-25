@@ -8,24 +8,23 @@ namespace ProductProjectAPI.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
+        private readonly DataContext _dataContext;
 
-        private static List<ProductEntity> products = new List<ProductEntity>
-            {
-                new ProductEntity{Id=1,Name="Cep Telefonu", Price="10000" },
-                new ProductEntity{Id=2,Name="Bilgisayar", Price="15000" },
-                new ProductEntity{Id=3,Name="Şarj Aleti", Price="500" }
-            };
+        public ProductController(DataContext dataContext)
+        {
+            _dataContext = dataContext;
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<ProductEntity>>> Get()
         {
-            return Ok(products);
+            return Ok(await _dataContext.productEntities.ToListAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductEntity>> Get(int id)
         {
-            var product = products.Find(x => x.Id == id);
+            var product = await _dataContext.productEntities.FindAsync(id);
             if (product == null)
                 return BadRequest("Ürün id bulunamadı.");
             return Ok(product);
@@ -33,27 +32,30 @@ namespace ProductProjectAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<List<ProductEntity>>> AddProduct(ProductEntity product)
         {
-            products.Add(product);
-            return Ok(products);
+            _dataContext.productEntities.Add(product);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.productEntities.ToListAsync());
         }
         [HttpPut]
         public async Task<ActionResult<List<ProductEntity>>> UpdateProduct(ProductEntity upPro)
         {
-            var product = products.Find(x => x.Id == upPro.Id);
+            var product = await _dataContext.productEntities.FindAsync(upPro.Id);
             if (product == null)
                 return BadRequest("Ürün id ye ait bilgi bulunamadı.");
             product.Name = upPro.Name;
             product.Price = upPro.Price;
-            return Ok(products);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.productEntities.ToListAsync());
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult<List<ProductEntity>>> DeleteProduct(int id)
         {
-            var product = products.Find(x => x.Id == id);
+            var product = await _dataContext.productEntities.FindAsync(id);
             if (product == null)
                 return NotFound("Silinecek ürün bulunamadı.");
-            products.Remove(product);
-            return Ok(products);
+            _dataContext.productEntities.Remove(product);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.productEntities.ToListAsync());
         }
     }
 }
